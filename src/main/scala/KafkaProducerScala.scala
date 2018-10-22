@@ -1,3 +1,5 @@
+import com.estafet.eet.data.source.CSVReader
+
 object KafkaProducer extends App {
   import java.util.Properties
 
@@ -10,15 +12,23 @@ object KafkaProducer extends App {
 
   val producer = new KafkaProducer[String, String](props)
 
-  val TOPIC="order-entry"
+  val TOPIC="muncho"
 
-  for(i<- 1 to 50){
-    val record = new ProducerRecord(TOPIC, "key", s"hello $i")
-    producer.send(record)
+  lazy val fileSource = io.Source.fromFile("/home/ddelov/Downloads/mca_csv_data/test_data.csv", "UTF-8")
+  val buf = new CSVReader << fileSource
+  println(s"Found ${buf.size} records")
+  for (row <- buf){
+    producer.send(new ProducerRecord(TOPIC, s"${row.k}", row.v))
+//    println(s"${row.k} -> ${row.v}")
   }
 
-  val record = new ProducerRecord(TOPIC, "key", "the end "+new java.util.Date)
-  producer.send(record)
+//  for(i<- 1 to 50){
+//    val record = new ProducerRecord(TOPIC, "key", s"hello $i")
+//    producer.send(record)
+//  }
+//
+//  val record = new ProducerRecord(TOPIC, "key", "the end "+new java.util.Date)
+//  producer.send(record)
 
   producer.close()
 }
